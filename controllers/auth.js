@@ -1,4 +1,3 @@
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken")
 const UnAuthenticated = require("../errors/unauthenticated");
 const BadRequest = require("../errors/bad-request");
@@ -7,14 +6,7 @@ const User = require("../models/user");
 const signup = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      throw new BadRequest("please provide all fields");
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({ email, password: hashedPassword });
-
+    await User.create({ email, password});
     res.status(201).json({ message: "user registered successfully" });
   } catch (error) {
     next(error);
@@ -34,7 +26,7 @@ const login = async (req, res, next) => {
       throw new UnAuthenticated("wrong email or password");
     }
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    const isPasswordCorrect = await user.comparePassword(password)
     if (!isPasswordCorrect) {
       throw new UnAuthenticated("wrong email or password");
     }
